@@ -1,3 +1,6 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using AdventOfCode2022.Day01;
 
-Console.WriteLine("Hello, World!");
+var solver = new Day01("01");
+var result = solver.Solve2();
+
+Console.WriteLine(result);

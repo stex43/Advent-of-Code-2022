@@ -1,4 +1,6 @@
-﻿namespace AdventOfCode2022.Day05;
+﻿using System.Text;
+
+namespace AdventOfCode2022.Day05;
 
 public sealed class Day05 : Solver
 {
@@ -9,165 +11,138 @@ public sealed class Day05 : Solver
 
     protected override object Solve1Internal(StreamReader input)
     {
-        var piles = new List<Stack<char>>(9);
-        var q = new List<Stack<char>>(9);
-
-        for (var i = 0; i < 9; i++)
-        {
-            piles.Add(new Stack<char>());
-            q.Add(new Stack<char>());
-        }
-        
-        while (!input.EndOfStream)
-        {
-            var line = input.ReadLine();
-
-            if (!string.IsNullOrWhiteSpace(line))
-            {
-                var crateNumber = 0;
-                for (var i = 0; i < line.Length; i++)
-                {
-                    i++;
-                    var crate = line[i];
-
-                    if (char.IsDigit(crate))
-                    {
-                        break;
-                    }
-
-                    if (char.IsLetter(crate))
-                    {
-                        //piles[crateNumber].Push(crate);
-                        q[crateNumber].Push(crate);
-                    }
-
-                    i++;
-                    i++;
-                    crateNumber++;
-                }
-            }
-            else
-            {
-                break;
-            }
-        }
-        
-        for (var i = 0; i < 9; i++)
-        {
-            while (q[i].TryPop(out var crate))
-            {
-                piles[i].Push(crate);
-            }
-        }
+        var piles = CreatePiles(input);
 
         while (!input.EndOfStream)
         {
-            var line = input.ReadLine();
-            var split = line.Split(new[] { "move ", "from ", "to " }, StringSplitOptions.TrimEntries);
+            var line = input.ReadLine()!;
+            var craneAssignment = CreateCraneAssignment(line);
 
-            var count = int.Parse(split[1]);
-            var from = int.Parse(split[2]);
-            var to = int.Parse(split[3]);
-
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i < craneAssignment.CrateAmount; i++)
             {
-                var crate = piles[from - 1].Pop();
-                piles[to - 1].Push(crate);
+                var crate = piles[craneAssignment.FromPile].Pop();
+                piles[craneAssignment.ToPile].Push(crate);
             }
         }
 
-        var s = string.Empty;
-        for (var i = 0; i < 9; i++)
-        {
-            var crate = piles[i].Peek();
-            s += crate;
-        }
-
-        return s;
+        return GetUpperCrates(piles);
     }
 
     protected override object Solve2Internal(StreamReader input)
     {
-        var piles = new List<Stack<char>>(9);
-        var q = new List<Stack<char>>(9);
-
-        for (var i = 0; i < 9; i++)
-        {
-            piles.Add(new Stack<char>());
-            q.Add(new Stack<char>());
-        }
-        
-        while (!input.EndOfStream)
-        {
-            var line = input.ReadLine();
-
-            if (!string.IsNullOrWhiteSpace(line))
-            {
-                var crateNumber = 0;
-                for (var i = 0; i < line.Length; i++)
-                {
-                    i++;
-                    var crate = line[i];
-
-                    if (char.IsDigit(crate))
-                    {
-                        break;
-                    }
-
-                    if (char.IsLetter(crate))
-                    {
-                        //piles[crateNumber].Push(crate);
-                        q[crateNumber].Push(crate);
-                    }
-
-                    i++;
-                    i++;
-                    crateNumber++;
-                }
-            }
-            else
-            {
-                break;
-            }
-        }
-        
-        for (var i = 0; i < 9; i++)
-        {
-            while (q[i].TryPop(out var crate))
-            {
-                piles[i].Push(crate);
-            }
-        }
+        var piles = CreatePiles(input);
 
         while (!input.EndOfStream)
         {
-            var line = input.ReadLine();
-            var split = line.Split(new[] { "move ", "from ", "to " }, StringSplitOptions.TrimEntries);
+            var line = input.ReadLine()!;
+            var craneAssignment = CreateCraneAssignment(line);
 
-            var count = int.Parse(split[1]);
-            var from = int.Parse(split[2]);
-            var to = int.Parse(split[3]);
-
-            var t = new Stack<char>();
-            for (var i = 0; i < count; i++)
+            var t = new Stack<char>(craneAssignment.CrateAmount);
+            for (var i = 0; i < craneAssignment.CrateAmount; i++)
             {
-                var crate = piles[from - 1].Pop();
+                var crate = piles[craneAssignment.FromPile].Pop();
                 t.Push(crate);
             }
 
             while (t.TryPop(out var crate))
             {
-                piles[to -1].Push(crate);
+                piles[craneAssignment.ToPile].Push(crate);
+            }
+        }
+        
+        return GetUpperCrates(piles);
+    }
+
+    private static List<Stack<char>> CreatePiles(StreamReader input)
+    {
+        var piles = new List<Stack<char>>(9);
+        var inputPiles = new List<Stack<char>>(9);
+
+        for (var i = 0; i < 9; i++)
+        {
+            piles.Add(new Stack<char>());
+            inputPiles.Add(new Stack<char>());
+        }
+
+        while (true)
+        {
+            var line = input.ReadLine()!;
+
+            // line of crate numbers
+            if (line.Contains('1'))
+            {
+                break;
+            }
+
+            var crateNumber = 0;
+            for (var i = 0; i < line.Length; i++)
+            {
+                // skip square parentheses
+                i++;
+                var crate = line[i];
+
+                if (char.IsLetter(crate))
+                {
+                    inputPiles[crateNumber].Push(crate);
+                }
+
+                crateNumber++;
+
+                // skip square parentheses
+                i += 2;
             }
         }
 
-        var s = string.Empty;
+        // skip empty line
+        input.ReadLine();
+
         for (var i = 0; i < 9; i++)
         {
-            piles[i].TryPeek(out var crate);
-            s += crate;
+            while (inputPiles[i].TryPop(out var crate))
+            {
+                piles[i].Push(crate);
+            }
         }
 
-        return s;
+        return piles;
+    }
+
+    private static CraneAssignment CreateCraneAssignment(string line)
+    {
+        var split = line.Split(new[] { "move ", "from ", "to " }, StringSplitOptions.TrimEntries);
+
+        var amount = int.Parse(split[1]);
+        var from = int.Parse(split[2]);
+        var to = int.Parse(split[3]);
+
+        return new CraneAssignment(amount, from - 1, to - 1);
+    }
+
+    private static string GetUpperCrates(List<Stack<char>> piles)
+    {
+        var stringBuilder = new StringBuilder(9);
+        for (var i = 0; i < 9; i++)
+        {
+            var crate = piles[i].Peek();
+            stringBuilder.Append(crate);
+        }
+
+        return stringBuilder.ToString();
+    }
+
+    private class CraneAssignment
+    {
+        public int CrateAmount { get; }
+
+        public int FromPile { get; }
+
+        public int ToPile { get; }
+
+        public CraneAssignment(int crateAmount, int fromPile, int toPile)
+        {
+            this.CrateAmount = crateAmount;
+            this.FromPile = fromPile;
+            this.ToPile = toPile;
+        }
     }
 }

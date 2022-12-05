@@ -2,20 +2,20 @@
 
 public sealed class Day03 : Solver
 {
-    public Day03(string dayNumber)
-        : base(dayNumber)
+    public Day03()
+        : base(nameof(Day03).Substring(3, 2))
     {
     }
-    
-    public override object Solve1()
+
+    protected override object Solve1Internal(StreamReader input)
     {
         var sum = 0;
         
-        while (!InputStream.EndOfStream)
+        while (!input.EndOfStream)
         {
-            var line = InputStream.ReadLine();
+            var line = input.ReadLine();
 
-            var length = line.Length;
+            var length = line!.Length;
             var compartment1 = line.Substring(0, length / 2);
             var compartment2 = line.Substring(length / 2, length / 2);
 
@@ -25,49 +25,45 @@ public sealed class Day03 : Solver
 
             foreach (var item in itemIntersection)
             {
-                if (char.IsLower(item))
-                {
-                    sum += item - 'a' + 1;
-                }
-                else
-                {
-                    sum += item - 'A' + 27;
-                }
+                sum += CountPriority(item);
             }
         }
         
         return sum;
     }
 
-    public override object Solve2()
+    protected override object Solve2Internal(StreamReader input)
     {
         var sum = 0;
         
-        while (!InputStream.EndOfStream)
+        while (!input.EndOfStream)
         {
-            var line1 = InputStream.ReadLine();
-            var line2 = InputStream.ReadLine();
-            var line3 = InputStream.ReadLine();
+            var line1 = input.ReadLine();
+            var line2 = input.ReadLine();
+            var line3 = input.ReadLine();
 
-            var set1 = new HashSet<char>(line1);
-            var set2 = new HashSet<char>(line2);
-            var set3 = new HashSet<char>(line3);
+            var set1 = new HashSet<char>(line1!);
+            var set2 = new HashSet<char>(line2!);
+            var set3 = new HashSet<char>(line3!);
 
-            var doubles = set1.Intersect(set2).Intersect(set3);
+            var itemIntersection = set1.Intersect(set2).Intersect(set3);
 
-            foreach (var d in doubles)
+            foreach (var item in itemIntersection)
             {
-                if (char.IsLower(d))
-                {
-                    sum += d - 'a' + 1;
-                }
-                else
-                {
-                    sum += d - 'A' + 27;
-                }
+                sum += CountPriority(item);
             }
         }
         
         return sum;
+    }
+
+    private static int CountPriority(char item)
+    {
+        if (char.IsLower(item))
+        {
+            return item - 'a' + 1;
+        }
+
+        return item - 'A' + 27;
     }
 }

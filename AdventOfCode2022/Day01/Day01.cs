@@ -4,19 +4,20 @@ public sealed class Day01 : Solver
 {
     private const int SnackElvesAmount = 3;
     
-    public Day01(string dayNumber) 
-        : base(dayNumber)
+    public Day01() 
+        : base(nameof(Day01).Substring(3, 2))
     {
     }
-    
-    public override object Solve1()
+
+    protected override object Solve1Internal(StreamReader input)
     {
+        
         var max = 0;
         var currentCalories = 0;
         
-        while (!InputStream.EndOfStream)
+        while (!input.EndOfStream)
         {
-            var line = InputStream.ReadLine();
+            var line = input.ReadLine();
 
             if (string.IsNullOrWhiteSpace(line))
             {
@@ -31,14 +32,14 @@ public sealed class Day01 : Solver
         return max;
     }
 
-    public override object Solve2()
+    protected override object Solve2Internal(StreamReader input)
     {
         var queue = new PriorityQueue<int, int>();
         var currentCalories = 0;
         
-        while (!InputStream.EndOfStream)
+        while (!input.EndOfStream)
         {
-            var line = InputStream.ReadLine();
+            var line = input.ReadLine();
 
             if (string.IsNullOrWhiteSpace(line))
             {

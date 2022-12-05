@@ -2,8 +2,8 @@
 
 public sealed class Day02 : Solver
 {
-    public Day02(string dayNumber)
-        : base(dayNumber)
+    public Day02()
+        : base(nameof(Day02).Substring(3, 2))
     {
     }
 
@@ -31,12 +31,13 @@ public sealed class Day02 : Solver
         { 'Z', 6 }
     };
 
-    public override object Solve1()
+    protected override object Solve1Internal(StreamReader input)
     {
+        
         var score = 0;
-        while (!InputStream.EndOfStream)
+        while (!input.EndOfStream)
         {
-            var line = InputStream.ReadLine();
+            var line = input.ReadLine()!;
 
             var elfShapeScore = shapeScores[line[0]];
             var mineShapeScore = shapeScores[line[2]];
@@ -52,13 +53,14 @@ public sealed class Day02 : Solver
         return score;
     }
 
-    public override object Solve2()
+    protected override object Solve2Internal(StreamReader input)
     {
+        
         var score = 0;
         
-        while (!InputStream.EndOfStream)
+        while (!input.EndOfStream)
         {
-            var line = InputStream.ReadLine();
+            var line = input.ReadLine()!;
 
             var elfShapeScore = shapeScores[line[0]];
             var matchResult = matchResultScores[line[2]];

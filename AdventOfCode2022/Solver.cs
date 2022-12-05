@@ -2,14 +2,28 @@
 
 public abstract class Solver
 {
-    protected readonly StreamReader InputStream;
-
+    private readonly string DayNumber;
+    
     protected Solver(string dayNumber)
     {
-        this.InputStream = new StreamReader($"Day{dayNumber}/input.txt");
+        this.DayNumber = dayNumber;
     }
 
-    public abstract object Solve1();
+    public object Solve1()
+    {
+        using var streamReader = new StreamReader($"Day{this.DayNumber}/input.txt");
+
+        return this.Solve1Internal(streamReader);
+    }
     
-    public abstract object Solve2();
+    public object Solve2()
+    {
+        using var streamReader = new StreamReader($"Day{this.DayNumber}/input.txt");
+
+        return this.Solve2Internal(streamReader);
+    }
+
+    protected abstract object Solve1Internal(StreamReader input);
+    
+    protected abstract object Solve2Internal(StreamReader input);
 }

@@ -9,25 +9,35 @@ public sealed class Day06 : Solver
 
     protected override object Solve1Internal(StreamReader input)
     {
-        while (!input.EndOfStream)
-        {
-            var line = input.ReadLine();
-            
-            
-        }
+        var line = input.ReadLine()!;
 
-        return 0;
+        return FindMarkerStart(line, 4);
     }
 
     protected override object Solve2Internal(StreamReader input)
     {
-        while (!input.EndOfStream)
+        var line = input.ReadLine()!;
+
+        return FindMarkerStart(line, 14);
+    }
+
+    private static int FindMarkerStart(string line, int markerSize)
+    {
+        var markerStart = 0;
+
+        for (var i = 0; i < line.Length - markerSize; i++)
         {
-            var line = input.ReadLine();
+            var window = line.Substring(i, markerSize);
+            var set = new HashSet<char>(window);
+            if (set.Count != markerSize)
+            {
+                continue;
+            }
             
-            
+            markerStart = i + markerSize;
+            break;
         }
-        
-        return 0;
+
+        return markerStart;
     }
 }

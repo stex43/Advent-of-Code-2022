@@ -9,76 +9,41 @@ public sealed class Day07 : Solver
 
     protected override object Solve1Internal(StreamReader input)
     {
-        var dir = InitializeFilesystem(input);
+        var root = InitializeFilesystem(input);
 
-        long sum = 0;
-        long size = GetSize(dir);
-
-        dir.Size = size;
-
-        if (size < 100000)
-        {
-            sum += size;
-        }
-
-
-        return t;
+        var dirsLesserThan = GetDirsLesserThan(root, 100000);
+        return dirsLesserThan.Select(x => x.Size).Sum();
     }
 
-    private long t = 0;
-
-    private long GetSize(Directory directory)
+    private static IEnumerable<Directory> GetDirsLesserThan(Directory root, long value)
     {
-        long size = 0;
-
-        foreach (var file in directory.Files)
+        if (root.Size <= value)
         {
-            size += file.Size;
+            yield return root;
         }
 
-        foreach (var dir in directory.Directories.Values)
+        foreach (var subDir in root.Directories.Values)
         {
-            if (dir.Size == -1)
+            foreach (var dirsLesserThan in GetDirsLesserThan(subDir, value))
             {
-                dir.Size = GetSize(dir);
-
-                if (dir.Size < 100000)
-                {
-                    t += dir.Size;
-                }
+                yield return dirsLesserThan;
             }
-
-            size += dir.Size;
         }
-
-        return size;
     }
 
     protected override object Solve2Internal(StreamReader input)
     {
         var dir = InitializeFilesystem(input);
 
-
-        long sum = 0;
-        long size = GetSize(dir);
-
-        dir.Size = size;
-
-        if (size < 100000)
-        {
-            sum += size;
-        }
-
         var root = dir;
         long need = 30000000 - (70000000 - root.Size);
 
 
-        Ccc(root, need);
+        this.GetMinBiggerThan(root, need);
 
-        return this.min;
+        return this.GetMinBiggerThan(root, need);
     }
-    
-    
+
     private static Directory InitializeFilesystem(StreamReader input)
     {
         var root = new Directory
@@ -86,12 +51,10 @@ public sealed class Day07 : Solver
             Name = "/",
             Parent = null
         };
-        
+
         var currentDir = root;
 
-        var state = State.WaitingForBeginning;
-
-        while (!input.EndOfStream)
+        while (true)
         {
             var line = input.ReadLine()!;
 
@@ -100,279 +63,139 @@ public sealed class Day07 : Solver
                 break;
             }
 
-            var tokens = line.Split();
+            var split = line!.Split(' ');
 
-            foreach (var token in tokens)
+            if (line[0] != '$')
             {
-                var tokenType = GetTokenType(token);
+                split = line.Split();
 
-                var newState = Grammar[state][tokenType];
+                ProcessLsResultLine(currentDir, split[0], split[1]);
 
-                if (newState == State.EndCd)
-                {
-                    switch (token)
-                    {
-                        case "/":
-                        {
-                            currentDir = root;
-                            break;
-                        }
-                        case "..":
-                        {
-                            currentDir = currentDir!.Parent;
-                            break;
-                        }
-                        default:
-                        {
-                            
-                        }
-                    }
-                }
+                continue;
             }
+
+            var command = split[1];
+
+            if (command == "ls")
+            {
+                continue;
+            }
+
+            var argDirName = split[2];
+
+            currentDir = ProcessCd(currentDir, argDirName, root);
         }
+        
+        CountDirectoriesSize(root);
 
         return root;
     }
 
-    private static Dictionary<State, Dictionary<TokenType, State>> Grammar = new()
+    private static Directory ProcessCd(Directory currentDir, string argDirName, Directory root)
     {
+        switch (argDirName)
         {
-            State.WaitingForBeginning, new Dictionary<TokenType, State>
+            case "/":
+                currentDir = root;
+                break;
+
+            case "..":
+                currentDir = currentDir.Parent!;
+                break;
+
+            default:
             {
-                { TokenType.CommandStart, State.WaitingForCommand }
-            }
-        },
-        {
-            State.WaitingForCommand, new Dictionary<TokenType, State>
-            {
-                { TokenType.Cd, State.WaitingForCdArgument },
-                { TokenType.Ls, State.WaitingForLsResult }
-            }
-        },
-        {
-            State.WaitingForCdArgument, new Dictionary<TokenType, State>
-            {
-                { TokenType.Root, State.WaitingForBeginning },
-                { TokenType.Up, State.WaitingForBeginning },
-                { TokenType.String, State.WaitingForBeginning }
-            }
-        },
-        {
-            State.EndCd, new Dictionary<TokenType, State>
-            {
-                { TokenType.CommandStart, State.WaitingForCommand }
-            }
-        },
-        {
-            State.WaitingForLsResult, new Dictionary<TokenType, State>
-            {
-                { TokenType.Dir, State.WaitingForDirName },
-                { TokenType.Int, State.WaitingForFileName }
-            }
-        },
-        {
-            State.WaitingForDirName, new Dictionary<TokenType, State>
-            {
-                { TokenType.String, State.WaitingForLsResult },
-            }
-        },
-        {
-            State.WaitingForFileName, new Dictionary<TokenType, State>
-            {
-                { TokenType.String, State.WaitingForLsResult },
+                currentDir = CreateNewDir(currentDir, argDirName);
+                break;
             }
         }
-    };
 
-    private enum State
-    {
-        WaitingForBeginning,
-        WaitingForCommand,
-        WaitingForCdArgument,
-        EndCd,
-        WaitingForLsResult,
-        WaitingForDirName,
-        WaitingForFileName
+        return currentDir!;
     }
 
-    private enum TokenType
+    private static void ProcessLsResultLine(Directory currentDir, string argFileSizeOrDir, string argFileNameOrDirName)
     {
-        CommandStart = 0,
-        Cd = 1,
-        Ls = 2,
-        Root = 3,
-        Up = 4,
-        Dir = 5,
-        String = 6,
-        Int = 7
-    }
-
-    private static TokenType GetTokenType(string token)
-    {
-        if (string.Equals(token, "$"))
+        if (argFileSizeOrDir == "dir")
         {
-            return TokenType.CommandStart;
+            CreateNewDir(currentDir, argFileNameOrDirName);
         }
-
-        return token switch
+        else
         {
-            "$" => TokenType.CommandStart,
-            "cd" => TokenType.Cd,
-            "ls" => TokenType.Ls,
-            "/" => TokenType.Root,
-            ".." => TokenType.Up,
-            "dir" => TokenType.Dir,
-            _ => token.All(char.IsDigit) ? TokenType.Int : TokenType.String
+            var size = long.Parse(argFileSizeOrDir);
+
+            var file = new File
+            {
+                Size = size
+            };
+
+            currentDir.Files.Add(file);
+        }
+    }
+
+    private static Directory CreateNewDir(Directory currentDir, string newDirName)
+    {
+        var newDir = new Directory
+        {
+            Name = newDirName,
+            Parent = currentDir
         };
+
+        currentDir.Directories[newDirName] = newDir;
+
+        newDir.Parent = currentDir;
+
+        return newDir;
     }
 
-    private static Directory InitializeFilesystem1(StreamReader input)
+    private static long CountDirectoriesSize(Directory root)
     {
-        var root = new Directory
-        {
-            Name = "/",
-            Parent = null
-        };
-        var currentDir = root;
+        long size = 0;
 
-        var line = input.ReadLine()!;
-        while (!input.EndOfStream)
+        foreach (var file in root.Files)
         {
-            
-            var split = line.Split(' ');
+            size += file.Size;
+        }
 
-            if (line[0] == '$')
+        foreach (var dir in root.Directories.Values)
+        {
+            if (dir.Size == -1)
             {
-                var command = split[1];
-
-                if (command == "cd")
-                {
-                    var argDirName = split[2];
-
-                    if (argDirName == "/")
-                    {
-                        currentDir = root;
-                    }
-                    else if (argDirName == "..")
-                    {
-                        currentDir = currentDir.Parent;
-                    }
-                    else
-                    {
-                        if (!currentDir.Directories.TryGetValue(argDirName, out var argDir))
-                        {
-                            argDir = new Directory
-                            {
-                                Name = argDirName,
-                                Parent = currentDir
-                            };
-
-                            currentDir.Directories[argDirName] = argDir;
-                        }
-
-                        currentDir = argDir;
-                    }
-
-                    line = input.ReadLine();
-                }
-                else if (command == "ls")
-                {
-                    line = input.ReadLine();
-                    while (!input.EndOfStream)
-                    {
-                        if (line[0] == '$')
-                        {
-                            break;
-                        }
-
-                        split = line.Split();
-                        var argDirNameOrSize = split[0];
-
-                        if (argDirNameOrSize == "dir")
-                        {
-                            var argDirName = split[1];
-
-                            if (!currentDir.Directories.TryGetValue(argDirName, out var argDir))
-                            {
-                                argDir = new Directory
-                                {
-                                    Name = argDirName,
-                                    Parent = currentDir
-                                };
-
-                                currentDir.Directories[argDirName] = argDir;
-                            }
-
-                            argDir.Parent = currentDir;
-                        }
-                        else
-                        {
-                            var size = long.Parse(split[0]);
-                            var name = split[1];
-
-                            var file = new File
-                            {
-                                Name = name,
-                                Size = size
-                            };
-
-                            currentDir.Files.Add(file);
-                        }
-
-                        line = input.ReadLine();
-                    }
-                }
+                dir.Size = CountDirectoriesSize(dir);
             }
+
+            size += dir.Size;
         }
 
-        return root;
+        root.Size = size;
+
+        return size;
     }
 
-    private long min = long.MaxValue;
-
-    private void Ccc(Directory directory, long need)
+    private long GetMinBiggerThan(Directory root, long value)
     {
-        if (directory.Size < need)
+        if (root.Size < value)
         {
-            return;
+            return long.MaxValue;
         }
 
-        this.min = Math.Min(this.min, directory.Size);
+        var min = root.Size;
 
-        foreach (var value in directory.Directories.Values)
+        foreach (var dir in root.Directories.Values)
         {
-            Ccc(value, need);
+            min = Math.Min(min, this.GetMinBiggerThan(dir, value));
         }
+
+        return min;
     }
 
     private class File
     {
-        public string Name { get; set; }
-
-        public long Size { get; set; }
-
-        protected bool Equals(File other)
-        {
-            return this.Name == other.Name;
-        }
-
-        public override bool Equals(object? obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((File)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return this.Name.GetHashCode();
-        }
+        public long Size { get; init; }
     }
 
     private class Directory
     {
-        public string Name { get; set; }
+        public string Name { get; init; } = null!;
 
         public Dictionary<string, Directory> Directories { get; } = new();
 
@@ -389,9 +212,21 @@ public sealed class Day07 : Solver
 
         public override bool Equals(object? obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (ReferenceEquals(null, obj))
+            {
+                return false;
+            }
+            
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+            
+            if (obj.GetType() != this.GetType())
+            {
+                return false;
+            }
+            
             return Equals((Directory)obj);
         }
 

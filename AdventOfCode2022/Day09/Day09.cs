@@ -1,9 +1,9 @@
-﻿namespace AdventOfCode2022;
+﻿namespace AdventOfCode2022.Day09;
 
-public sealed class DayTemplate : Solver
+public sealed class Day09 : Solver
 {
-    public DayTemplate() 
-        : base(nameof(DayTemplate).Substring(3, 2))
+    public Day09() 
+        : base(nameof(Day09).Substring(3, 2))
     {
     }
 

@@ -1,6 +1,6 @@
-﻿using AdventOfCode2022.Day12;
+﻿using AdventOfCode2022.Day13;
 
-var solver = new Day12();
+var solver = new Day13();
 
 Console.WriteLine(solver.Solve1());
 Console.WriteLine();

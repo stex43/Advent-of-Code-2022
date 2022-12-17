@@ -1,9 +1,9 @@
-﻿namespace AdventOfCode2022.Day13;
+﻿namespace AdventOfCode2022.Day16;
 
-public sealed class Day13 : Solver
+public sealed class Day16 : Solver
 {
-    public Day13()
-        : base(nameof(Day13).Substring(3, 2))
+    public Day16() 
+        : base(nameof(Day16).Substring(3, 2))
     {
     }
 
@@ -11,6 +11,9 @@ public sealed class Day13 : Solver
     {
         while (!input.EndOfStream)
         {
+            var line = input.ReadLine()!;
+            
+            
         }
 
         return 0;
@@ -20,15 +23,11 @@ public sealed class Day13 : Solver
     {
         while (!input.EndOfStream)
         {
+            var line = input.ReadLine();
+            
+            
         }
-
+        
         return 0;
-    }
-
-    private class Signal
-    {
-        public int Value { get; set; }
-
-        public List<Signal> List { get; set; } = new();
     }
 }

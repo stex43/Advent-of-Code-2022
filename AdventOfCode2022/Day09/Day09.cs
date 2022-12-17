@@ -1,4 +1,6 @@
-﻿namespace AdventOfCode2022.Day09;
+﻿using AdventOfCode2022.Common;
+
+namespace AdventOfCode2022.Day09;
 
 public sealed class Day09 : Solver
 {
@@ -140,26 +142,6 @@ public sealed class Day09 : Solver
         else if (head.X < tail.X)
         {
             tail.X--;
-        }
-    }
-    
-    private class Point
-    {
-        public int X { get; set; }
-        
-        public int Y { get; set; }
-
-        public Point(int x, int y)
-        {
-            this.X = x;
-            this.Y = y;
-        }
-
-        public static Point Empty => new(0, 0);
-
-        public override string ToString()
-        {
-            return $"{this.X} {this.Y}";
         }
     }
 }
